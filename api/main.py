@@ -6,6 +6,7 @@ from .models import models, schemas
 from .controllers import orders
 from .controllers import sandwiches
 from .controllers import resources
+from .controllers import recipes
 from .dependencies.database import engine, get_db
 
 models.Base.metadata.create_all(bind=engine)
@@ -103,3 +104,26 @@ def update_resource(resource_id: int, resource: schemas.ResourceUpdate, db: Sess
 @app.delete("/resources/{resource_id}", tags=["Resources"])
 def delete_resource(resource_id: int, db: Session = Depends(get_db)):
     return resources.delete(db, resource_id)
+
+@app.post("/recipes/", response_model=schemas.Recipe, tags=["Recipes"])
+def create_recipe(recipe: schemas.RecipeCreate, db: Session = Depends(get_db)):
+    return recipes.create(db, recipe)
+
+@app.get("/recipes/", response_model=list[schemas.Recipe], tags=["Recipes"])
+def read_recipes(db: Session = Depends(get_db)):
+    return recipes.read_all(db)
+
+@app.get("/recipes/{recipe_id}", response_model=schemas.Recipe, tags=["Recipes"])
+def read_one_recipe(recipe_id: int, db: Session = Depends(get_db)):
+    r = recipes.read_one(db, recipe_id)
+    if r is None:
+        raise HTTPException(404, "Recipe not found")
+    return r
+
+@app.put("/recipes/{recipe_id}", response_model=schemas.Recipe, tags=["Recipes"])
+def update_recipe(recipe_id: int, recipe: schemas.RecipeUpdate, db: Session = Depends(get_db)):
+    return recipes.update(db, recipe_id, recipe)
+
+@app.delete("/recipes/{recipe_id}", tags=["Recipes"])
+def delete_recipe(recipe_id: int, db: Session = Depends(get_db)):
+    return recipes.delete(db, recipe_id)

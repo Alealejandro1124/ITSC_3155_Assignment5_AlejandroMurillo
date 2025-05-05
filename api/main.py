@@ -4,6 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .models import models, schemas
 from .controllers import orders
+from .controllers import sandwiches
+from .controllers import resources
 from .dependencies.database import engine, get_db
 
 models.Base.metadata.create_all(bind=engine)
@@ -54,7 +56,6 @@ def delete_one_order(order_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     return orders.delete(db=db, order_id=order_id)
 
-from .controllers import sandwiches
 
 @app.post("/sandwiches/", response_model=schemas.Sandwich, tags=["Sandwiches"])
 def create_sandwich(sandwich: schemas.SandwichCreate, db: Session = Depends(get_db)):
@@ -78,3 +79,27 @@ def update_sandwich(sandwich_id: int, sandwich: schemas.SandwichUpdate, db: Sess
 @app.delete("/sandwiches/{sandwich_id}", tags=["Sandwiches"])
 def delete_sandwich(sandwich_id: int, db: Session = Depends(get_db)):
     return sandwiches.delete(db, sandwich_id)
+
+
+@app.post("/resources/", response_model=schemas.Resource, tags=["Resources"])
+def create_resource(resource: schemas.ResourceCreate, db: Session = Depends(get_db)):
+    return resources.create(db, resource)
+
+@app.get("/resources/", response_model=list[schemas.Resource], tags=["Resources"])
+def read_resources(db: Session = Depends(get_db)):
+    return resources.read_all(db)
+
+@app.get("/resources/{resource_id}", response_model=schemas.Resource, tags=["Resources"])
+def read_one_resource(resource_id: int, db: Session = Depends(get_db)):
+    r = resources.read_one(db, resource_id)
+    if r is None:
+        raise HTTPException(404, "Resource not found")
+    return r
+
+@app.put("/resources/{resource_id}", response_model=schemas.Resource, tags=["Resources"])
+def update_resource(resource_id: int, resource: schemas.ResourceUpdate, db: Session = Depends(get_db)):
+    return resources.update(db, resource_id, resource)
+
+@app.delete("/resources/{resource_id}", tags=["Resources"])
+def delete_resource(resource_id: int, db: Session = Depends(get_db)):
+    return resources.delete(db, resource_id)

@@ -53,3 +53,28 @@ def delete_one_order(order_id: int, db: Session = Depends(get_db)):
     if order is None:
         raise HTTPException(status_code=404, detail="User not found")
     return orders.delete(db=db, order_id=order_id)
+
+from .controllers import sandwiches
+
+@app.post("/sandwiches/", response_model=schemas.Sandwich, tags=["Sandwiches"])
+def create_sandwich(sandwich: schemas.SandwichCreate, db: Session = Depends(get_db)):
+    return sandwiches.create(db, sandwich)
+
+@app.get("/sandwiches/", response_model=list[schemas.Sandwich], tags=["Sandwiches"])
+def read_sandwiches(db: Session = Depends(get_db)):
+    return sandwiches.read_all(db)
+
+@app.get("/sandwiches/{sandwich_id}", response_model=schemas.Sandwich, tags=["Sandwiches"])
+def read_one_sandwich(sandwich_id: int, db: Session = Depends(get_db)):
+    s = sandwiches.read_one(db, sandwich_id)
+    if s is None:
+        raise HTTPException(404, "Sandwich not found")
+    return s
+
+@app.put("/sandwiches/{sandwich_id}", response_model=schemas.Sandwich, tags=["Sandwiches"])
+def update_sandwich(sandwich_id: int, sandwich: schemas.SandwichUpdate, db: Session = Depends(get_db)):
+    return sandwiches.update(db, sandwich_id, sandwich)
+
+@app.delete("/sandwiches/{sandwich_id}", tags=["Sandwiches"])
+def delete_sandwich(sandwich_id: int, db: Session = Depends(get_db)):
+    return sandwiches.delete(db, sandwich_id)

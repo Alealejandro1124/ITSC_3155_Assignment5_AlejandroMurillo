@@ -7,6 +7,7 @@ from .controllers import orders
 from .controllers import sandwiches
 from .controllers import resources
 from .controllers import recipes
+from .controllers import order_details
 from .dependencies.database import engine, get_db
 
 models.Base.metadata.create_all(bind=engine)
@@ -127,3 +128,26 @@ def update_recipe(recipe_id: int, recipe: schemas.RecipeUpdate, db: Session = De
 @app.delete("/recipes/{recipe_id}", tags=["Recipes"])
 def delete_recipe(recipe_id: int, db: Session = Depends(get_db)):
     return recipes.delete(db, recipe_id)
+
+@app.post("/order_details/", response_model=schemas.OrderDetail, tags=["OrderDetails"])
+def create_order_detail(order_detail: schemas.OrderDetailCreate, db: Session = Depends(get_db)):
+    return order_details.create(db, order_detail)
+
+@app.get("/order_details/", response_model=list[schemas.OrderDetail], tags=["OrderDetails"])
+def read_order_details(db: Session = Depends(get_db)):
+    return order_details.read_all(db)
+
+@app.get("/order_details/{order_detail_id}", response_model=schemas.OrderDetail, tags=["OrderDetails"])
+def read_one_order_detail(order_detail_id: int, db: Session = Depends(get_db)):
+    od = order_details.read_one(db, order_detail_id)
+    if od is None:
+        raise HTTPException(404, "Order detail not found")
+    return od
+
+@app.put("/order_details/{order_detail_id}", response_model=schemas.OrderDetail, tags=["OrderDetails"])
+def update_order_detail(order_detail_id: int, order_detail: schemas.OrderDetailUpdate, db: Session = Depends(get_db)):
+    return order_details.update(db, order_detail_id, order_detail)
+
+@app.delete("/order_details/{order_detail_id}", tags=["OrderDetails"])
+def delete_order_detail(order_detail_id: int, db: Session = Depends(get_db)):
+    return order_details.delete(db, order_detail_id)
